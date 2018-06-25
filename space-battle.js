@@ -1,3 +1,5 @@
+var Images = { };
+var IMAGES_LOADED = 0;
 var canvas = document.getElementById("myCanvas");
 canvas.width = 800;
 canvas.height = 600;
@@ -28,13 +30,29 @@ var theBullets = [];
 var player1Image;
 var player2Image;
 var backgroundImage1;
-var backgroundImage2;
-var backgroundImage3;
-var backgroundImage4;
+var zoomActive = false;
+var zoomFactor = 1;
+var imageData = [{
+	name: "ship1",
+	url: "img/player.png",
+},{
+	name: "ship2",
+	url: "img/player2.png",
+},{
+	name: "ship3",
+	url: "img/player3.png",
+},{
+	name: "ship4",
+	url: "img/player4.png",
+},{
+	name: "background",
+	url: "img/backgroundstarssmalltest.jpg",
+}];
+
 var shipTypes = [
-	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5},
-	{bullet: 1, maxSpeed: 5, rotateSpeed: 1, health: 300, rateOfFire: 1},
-	{bullet: 2, maxSpeed: 2, rotateSpeed: 0.5, health: 400, rateOfFire: 2}
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship1"},
+	{bullet: 1, maxSpeed: 5, rotateSpeed: 1, health: 300, rateOfFire: 1, img: "ship2"},
+	{bullet: 2, maxSpeed: 2, rotateSpeed: 0.5, health: 400, rateOfFire: 2, img: "ship3"}
 ];
 var bulletTypes = [
 	{speed: 10, damage: 10, scale: 1, range: 60},
@@ -64,19 +82,29 @@ function init() {
 
 init();
 
-function loadImages() {
-	player1Image = new Image();
+function loadImages(list) {
+	/*player1Image = new Image();
 	player2Image = new Image();
 	backgroundImage1 = new Image();
-	backgroundImage2 = new Image();
-	backgroundImage3 = new Image();
-	backgroundImage4 = new Image();
-	player1Image.src = 'img/player.png';
-	player2Image.src = 'img/player2.png';
-	backgroundImage1.src = 'img/backgroundstarssmalltest.jpg';
-	backgroundImage2.src = 'img/backgroundstarssmalltest.jpg';
-	backgroundImage3.src = 'img/backgroundstarssmalltest.jpg';
-	backgroundImage4.src = 'img/backgroundstarssmalltest.jpg';
+	player1Image.src = shipTypes[Player1.ship].img;
+	player2Image.src = shipTypes[Player2.ship].img;
+	backgroundImage1.src = 'img/backgroundstarssmalltest.jpg';*/
+	var total = 0;
+     for(var i = 0; i < list.length; i++){
+		var img = new Image();
+		Images[list[i].name] = img;
+		img.onload = function(){
+			total++;
+			if(total == list.length){
+				//startGame();
+				IMAGES_LOADED = 1;
+				//chosenPokemon = Math.floor(Math.random() * pokemonData.length);
+				//currentPokemon = chosenPokemon;
+				
+			}				 
+		};
+		img.src = list[i].url; 
+	}     
 
 	/*badGuyImage = new Image();
 	badGuyImage.src = 'badguy.png';
@@ -84,7 +112,7 @@ function loadImages() {
 	balls = new Image();
 	balls.src = 'balls.png';*/
 }
-loadImages();
+var images = loadImages(imageData);
 
 function mainDraw() {
 	c.clearRect(0, 0, WIDTH, HEIGHT);
@@ -142,34 +170,14 @@ function updateCamera() {
 	var deltaX;
 	var deltaY;
 	
-	/*if(Player1.wrapped === POSITIVE_X) {
-		deltaX = Player1.x + mapSize.w - Player2.x;
-		deltaY = Player1.y - Player2.y;
-	} else {
-		deltaX = Player1.x - Player2.x;
-		deltaY = Player1.y - Player2.y;
-	}*/
-	
 	deltaX = Player1.x - Player2.x;
 	deltaY = Player1.y - Player2.y;
 	
-	/*if ( Player1.x > (camera.w / 2) && Player1.x < mapSize.w - (camera.w / 2) ) {
-		camera.x = Player1.x - (camera.w / 2);
-	} else if ( Player1.x <= camera.w / 2) {
-		camera.x = 0;
-	} else if ( Player1.x >= mapSize.w - (camera.w / 2)) {
-		camera.x = mapSize.w - camera.w;
+	if(deltaX*deltaX + deltaY*deltaY < 180000){
+		zoomFactor = 2;
+	} else {
+		zoomFactor = 1;
 	}
-	if ( Player1.y > (camera.h / 2) && Player1.y < mapSize.h - (camera.h / 2) ) {
-		camera.y = Player1.y - (camera.h / 2);
-	} else if ( Player1.y <= camera.h / 2) {
-		camera.y = 0;
-	} else if ( Player1.y >= mapSize.h - (camera.h / 2)) {
-		camera.y = mapSize.h - camera.h;
-	}*/
-	
-	//camera.x = Player1.x - (camera.w / 2);
-	//camera.y = Player1.y - (camera.h / 2);
 	
 	if(deltaX > camera.w) {
 		Player1.x -= mapSize.w;
@@ -191,25 +199,50 @@ function updateCamera() {
 }
 
 function drawMap() {
-	c.drawImage(backgroundImage1, 0 - camera.x, 0 - camera.y);
-	if (camera.x <= 0) {
-		c.drawImage(backgroundImage2, 0 - camera.x - mapSize.w, 0 - camera.y);
-	} else if (camera.x >= mapSize.w - camera.w) {
-		c.drawImage(backgroundImage2, 0 - camera.x + mapSize.w, 0 - camera.y);
-	}
-	if (camera.y <= 0) {
-		c.drawImage(backgroundImage2, 0 - camera.x, 0 - camera.y - mapSize.h);
-	} else if (camera.y >= mapSize.h - camera.h) {
-		c.drawImage(backgroundImage2, 0 - camera.x, 0 - camera.y + mapSize.h);
-	}
-	if (camera.x <= 0 && camera.y <= 0) {
-		c.drawImage(backgroundImage2, 0 - camera.x - mapSize.w, 0 - camera.y - mapSize.h);
-	} else if (camera.x <= 0 && camera.y >= mapSize.h - camera.h) {
-		c.drawImage(backgroundImage2, 0 - camera.x - mapSize.w, 0 - camera.y + mapSize.h);
-	} else if (camera.x >= mapSize.w - camera.w && camera.y <= 0) {
-		c.drawImage(backgroundImage2, 0 - camera.x + mapSize.w, 0 - camera.y - mapSize.h);
-	} else if (camera.x >= mapSize.w - camera.w && camera.y >= mapSize.h - camera.h) {
-		c.drawImage(backgroundImage2, 0 - camera.x + mapSize.w, 0 - camera.y + mapSize.h);
+	if(zoomActive) {
+		c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+		
+		if (camera.x <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y);
+		} else if (camera.x >= mapSize.w - camera.w) {
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y);
+		}
+		if (camera.y <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y - mapSize.h);
+		} else if (camera.y >= mapSize.h - camera.h) {
+			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y + mapSize.h);
+		}
+		if (camera.x <= 0 && camera.y <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y - mapSize.h);
+		} else if (camera.x <= 0 && camera.y >= mapSize.h - camera.h) {
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y + mapSize.h);
+		} else if (camera.x >= mapSize.w - camera.w && camera.y <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y - mapSize.h);
+		} else if (camera.x >= mapSize.w - camera.w && camera.y >= mapSize.h - camera.h) {
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y + mapSize.h);
+		}
+	} else {
+	
+		c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y);
+		if (camera.x <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y);
+		} else if (camera.x >= mapSize.w - camera.w) {
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y);
+		}
+		if (camera.y <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y - mapSize.h);
+		} else if (camera.y >= mapSize.h - camera.h) {
+			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y + mapSize.h);
+		}
+		if (camera.x <= 0 && camera.y <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y - mapSize.h);
+		} else if (camera.x <= 0 && camera.y >= mapSize.h - camera.h) {
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y + mapSize.h);
+		} else if (camera.x >= mapSize.w - camera.w && camera.y <= 0) {
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y - mapSize.h);
+		} else if (camera.x >= mapSize.w - camera.w && camera.y >= mapSize.h - camera.h) {
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y + mapSize.h);
+		}
 	}
 } 
 
@@ -237,7 +270,11 @@ function playerDraw() {
 		c.translate(Player1.x + (Player1.w / 2) - camera.x, Player1.y + (Player1.h / 2) - camera.y);
 		c.rotate(Player1.rotation);
 		c.translate(-Player1.x - (Player1.w / 2) + camera.x, -Player1.y - (Player1.h / 2) + camera.y);
-		c.drawImage(Player1.image, Player1.x - 4 - camera.x, Player1.y - 2 - camera.y,Player1.w * 1.3, Player1.h * 1.3);
+		if(zoomActive) {
+			c.drawImage(Player1.image, Player1.x - 4 - camera.x, Player1.y - 2 - camera.y,Player1.w * 1.3 * zoomFactor, Player1.h * 1.3 * zoomFactor);
+		} else {
+			c.drawImage(Player1.image, Player1.x - 4 - camera.x, Player1.y - 2 - camera.y,Player1.w * 1.3, Player1.h * 1.3);
+		}
 		
 		c.restore();
 		c.save();
@@ -246,7 +283,11 @@ function playerDraw() {
 		c.translate(Player2.x + (Player2.w / 2) - camera.x, Player2.y + (Player2.h / 2) - camera.y);
 		c.rotate(Player2.rotation);
 		c.translate(-Player2.x - (Player2.w / 2) + camera.x,-Player2.y - (Player2.h / 2) + camera.y);
-		c.drawImage(Player2.image, Player2.x - 4 - camera.x, Player2.y - 2 - camera.y,Player2.w * 1.3, Player2.h * 1.3);
+		if(zoomActive) {
+			c.drawImage(Player2.image, Player2.x - 4 - camera.x, Player2.y - 2 - camera.y,Player2.w * 1.3 * zoomFactor, Player2.h * 1.3 * zoomFactor);
+		} else {
+			c.drawImage(Player2.image, Player2.x - 4 - camera.x, Player2.y - 2 - camera.y,Player2.w * 1.3, Player2.h * 1.3);
+		}
 	}
 	
 
@@ -334,18 +375,12 @@ function Player (i) {
 	this.h = 20;
 	this.points = 0;
 	if(i === 1) {
-		this.image = player1Image;
 		this.x = 500;
 		this.y = 295;
-		this.drawX = 500;
-		this.drawY = 295;
 		this.ship = 2;
 	} else if(i === 2) {
-		this.image = player2Image;
 		this.x = 100;
 		this.y = 295;
-		this.drawX = 100;
-		this.drawY = 295;
 		this.ship = 0;
 	}
 	this.rotation = 0;
@@ -358,7 +393,7 @@ function Player (i) {
 	this.rateOfFire = shipTypes[this.ship].rateOfFire;
 	this.health = shipTypes[this.ship].health;
 	this.cooldownTime = 0;
-	this.wrapped = 0;
+	this.image = Images[shipTypes[this.ship].img];
 }
 var Player1 = new Player(1);
 var Player2 = new Player(2);
@@ -386,41 +421,8 @@ function playerMove(e){
 		Player1.rotation += Player1.rotateSpeed * 0.05;
 	}
 	
-	/*if (Player1.y < 2) {
-		Player1.y = mapSize.h - Player1.h - 2;
-	} else if (Player1.y > mapSize.h - Player1.h - 2) {
-		Player1.y = 2;
-	}
-	if (Player1.x < 2) {
-		Player1.x = mapSize.w - Player1.w - 2;
-	} else if (Player1.x > mapSize.w - Player1.w - 2) {
-		Player1.x = 2;
-	}*/
 	Player1.x += Math.cos(Player1.rotation) * Player1.speed;
 	Player1.y += Math.sin(Player1.rotation) * Player1.speed;
-	Player1.drawX += Math.cos(Player1.rotation) * Player1.speed;
-	Player1.drawY += Math.sin(Player1.rotation) * Player1.speed;
-	
-	/*
-	if (Player1.y < 0) {
-		Player1.y += mapSize.h;
-	} else if (Player1.y > mapSize.h) {
-		Player1.y -= mapSize.h;
-	}
-	if (Player1.x < 0) {
-		Player1.x += mapSize.w;
-		if(Player1.drawX != Player1.x) {
-			Player1.drawX = Player1.x;
-		}
-	} else if (Player1.x > mapSize.w) {
-		Player1.x -= mapSize.w;
-		if(Player2.drawX != Player2.x) {
-			Player2.drawX = Player2.x;
-			Player1.drawX = Player1.x;
-			
-		}
-	}*/
-	
 	
 	//p2
 	if (keys[38]) { //up
@@ -443,42 +445,10 @@ function playerMove(e){
 	if (keys[39] ) { //right
 		Player2.rotation += Player2.rotateSpeed * 0.05;
 	}
-	/*if (Player2.y < 2) {
-		Player2.y = 2;
-	}
-	if (Player2.y > HEIGHT - Player2.h - 2) {
-		Player2.y = HEIGHT - Player2.h - 2;
-	}
-	if (Player2.x < 2) {
-		Player2.x = 2;
-	}
-	if (Player2.x > WIDTH - Player2.w - 2) {
-		Player2.x = WIDTH - Player2.w - 2;
-	}*/
+	
 	Player2.x += Math.cos(Player2.rotation) * Player2.speed;
 	Player2.y += Math.sin(Player2.rotation) * Player2.speed;
-	Player2.drawX += Math.cos(Player2.rotation) * Player2.speed;
-	Player2.drawY += Math.sin(Player2.rotation) * Player2.speed;
 	
-	/*
-	if (Player2.y < 0) {
-		Player2.y += mapSize.h;
-	} else if (Player2.y > mapSize.h) {
-		Player2.y -= mapSize.h;
-	}
-	if (Player2.x < 0) {
-		Player2.x += mapSize.w;
-		if(Player2.drawX != Player2.x) {
-			Player2.drawX = Player2.x;
-		}
-	} else if (Player2.x > mapSize.w) {
-		Player2.x -= mapSize.w;
-		if(Player1.drawX != Player1.x) {
-			Player1.drawX = Player1.x;
-			Player2.drawX = Player2.x;
-			
-		}
-	}*/
 	if (Player1.x > mapSize.w && Player2.x > mapSize.w) {
 		Player1.x -= mapSize.w;
 		bulletsTeleport(Player1, NEGATIVE_X);
