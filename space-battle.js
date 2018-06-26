@@ -30,7 +30,7 @@ var theBullets = [];
 var player1Image;
 var player2Image;
 var backgroundImage1;
-var zoomActive = false;
+var zoomActive = true;
 var zoomFactor = 1;
 var imageData = [{
 	name: "ship1",
@@ -45,19 +45,26 @@ var imageData = [{
 	name: "ship4",
 	url: "img/player4.png",
 },{
+	name: "ship5",
+	url: "img/player5.png",
+},{
 	name: "background",
 	url: "img/backgroundstarssmalltest.jpg",
 }];
 
 var shipTypes = [
-	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship1"},
-	{bullet: 1, maxSpeed: 5, rotateSpeed: 1, health: 300, rateOfFire: 1, img: "ship2"},
-	{bullet: 2, maxSpeed: 2, rotateSpeed: 0.5, health: 400, rateOfFire: 2, img: "ship3"}
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship1", energy: 100, rechargeRate: 10},
+	{bullet: 1, maxSpeed: 5, rotateSpeed: 1, health: 300, rateOfFire: 1, img: "ship2", energy: 100, rechargeRate: 7},
+	{bullet: 3, maxSpeed: 2, rotateSpeed: 0.5, health: 400, rateOfFire: 2, img: "ship3", energy: 100, rechargeRate: 3},
+	{bullet: 2, maxSpeed: 2, rotateSpeed: 0.5, health: 500, rateOfFire: 2, img: "ship4", energy: 100, rechargeRate: 5},
+	{bullet: 4, maxSpeed: 2, rotateSpeed: 0.5, health: 500, rateOfFire: 2, img: "ship5", energy: 100, rechargeRate: 3}
 ];
 var bulletTypes = [
-	{speed: 10, damage: 10, scale: 1, range: 60},
-	{speed: 5, damage: 20, scale: 2, range: 90},
-	{speed: 2, damage: 40, scale: 4, range: 1600}
+	{speed: 10, damage: 10, scale: 1, range: 60, energyCost: 5}, 
+	{speed: 5, damage: 20, scale: 2, range: 90, energyCost: 10},
+	{speed: 2, damage: 40, scale: 4, range: 1600, energyCost: 15},
+	{speed: 5, damage: 10, scale: 2, range: 60, energyCost: 30}, // 360 spread
+	{speed: 5, damage: 10, scale: 2, range: 60, energyCost: 1}, // laser
 ];
 var camera = {
 	x: 0, 
@@ -70,6 +77,8 @@ var mapSize = {
 	h: 1200,
 	w: 1600,
 }
+
+var asteroids = { }
 
 function init() {
 	c.fillStyle="red";
@@ -124,6 +133,7 @@ function mainDraw() {
 		playerDraw();
 		drawCoins();
 		drawHUD();
+		playerUpdate();
 		checkCollision();
 		//timeRemaining -= 0.02;
 		bulletsMove();
@@ -143,6 +153,12 @@ function mainDraw() {
 		}
 		if (Player2.cooldownTime > 0) {
 			Player2.cooldownTime -= 0.02;
+		}
+		if (Player1.health <= 0) {
+			Player1.dead = true;
+		}
+		if (Player2.health <= 0) {
+			Player2.dead = true;
 		}
 		updateCamera();
 		//c.beginPath();
@@ -173,8 +189,12 @@ function updateCamera() {
 	deltaX = Player1.x - Player2.x;
 	deltaY = Player1.y - Player2.y;
 	
-	if(deltaX*deltaX + deltaY*deltaY < 180000){
-		zoomFactor = 2;
+	var temp = deltaX*deltaX + deltaY*deltaY;
+	if(temp < 280000){
+		zoomFactor = 280000 / temp;
+		if(zoomFactor > 2) {
+			zoomFactor = 2;
+		}
 	} else {
 		zoomFactor = 1;
 	}
@@ -194,32 +214,32 @@ function updateCamera() {
 		bulletsTeleport(Player1, POSITIVE_Y);
 	}
 	
-	camera.x = Player1.x - (deltaX / 2) - (camera.w / 2);
-	camera.y = Player1.y - (deltaY / 2) - (camera.h / 2);
+	//camera.x = Player1.x - (deltaX / 2) - (camera.w / 2);
+	//camera.y = Player1.y - (deltaY / 2) - (camera.h / 2);
 }
 
 function drawMap() {
 	if(zoomActive) {
-		c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+		c.drawImage(Images["background"], 0 /*- camera.x*/ - (mapSize.w * (zoomFactor - 1) / 2), 0 /*- camera.y */- (mapSize.h * (zoomFactor - 1) / 2), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		
 		if (camera.x <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y);
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor, 0 - camera.y, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x >= mapSize.w - camera.w) {
-			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y);
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor, 0 - camera.y, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		}
 		if (camera.y <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y - mapSize.h);
+			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y - mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.y >= mapSize.h - camera.h) {
-			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y + mapSize.h);
+			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y + mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		}
 		if (camera.x <= 0 && camera.y <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y - mapSize.h);
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor, 0 - camera.y - mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x <= 0 && camera.y >= mapSize.h - camera.h) {
-			c.drawImage(Images["background"], 0 - camera.x - mapSize.w, 0 - camera.y + mapSize.h);
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor, 0 - camera.y + mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x >= mapSize.w - camera.w && camera.y <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y - mapSize.h);
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor, 0 - camera.y - mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x >= mapSize.w - camera.w && camera.y >= mapSize.h - camera.h) {
-			c.drawImage(Images["background"], 0 - camera.x + mapSize.w, 0 - camera.y + mapSize.h);
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor, 0 - camera.y + mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		}
 	} else {
 	
@@ -298,9 +318,12 @@ function playerDraw() {
 setInterval(mainDraw, 20);
 
 function drawHUD() {
-	c.font = '18pt Calibri';
-	c.fillStyle = 'black';
-	c.fillText("Health:", 10, 25);
+	c.font = '12pt Calibri';
+	c.fillStyle = 'yellow';
+	c.fillText("P1 Health:", 10, 25);
+	c.fillText("P1 Energy:", 10, 50);
+	c.fillText("P2 Health:", 400, 25);
+	c.fillText("P2 Energy:", 400, 50);
 	if (Player1.dead != true) {
 		c.beginPath();
 		if (Player1.health < 50) {
@@ -308,9 +331,14 @@ function drawHUD() {
 		} else {
 			c.strokeStyle= 'yellow'; 
 		}
-		c.moveTo(85,18);
-		c.lineTo(85 + Player1.health, 18);
+		c.moveTo(90,18);
+		c.lineTo(90 + Player1.health/2, 18);
 		c.lineWidth=15;
+		c.stroke();
+		c.beginPath();
+		c.strokeStyle= 'green';
+		c.moveTo(90,43);
+		c.lineTo(90 + Player1.currentEnergy/2, 43);
 		c.stroke();
 	}
 	if (Player2.dead != true) {
@@ -320,20 +348,16 @@ function drawHUD() {
 		} else {
 			c.strokeStyle= 'yellow'; 
 		}
-		c.moveTo(85,40);
-		c.lineTo(85 + Player2.health, 40);
+		c.moveTo(480,18);
+		c.lineTo(480 + Player2.health/2, 18);
 		c.lineWidth=15;
 		c.stroke();
+		c.beginPath();
+		c.strokeStyle= 'green';
+		c.moveTo(480,43);
+		c.lineTo(480 + Player2.currentEnergy/2, 43);
+		c.stroke();
 	}
-	c.fillStyle = 'black';
-	c.fillText("Points:", 370, 25);
-	c.fillText("Time remaining:", 585, 25);
-	if (timeRemaining < 10) {
-		c.fillStyle = "red"
-	}
-	c.fillText(Math.ceil(timeRemaining), 750, 25);
-	c.fillStyle = 'yellow';
-	c.fillText(Player1.points, 445, 25);
 }	
 
 function drawCoins() {
@@ -386,28 +410,65 @@ function Player (i) {
 	this.rotation = 0;
 	this.speed = 0;
 	this.dead = false;
-	//this.ship = Math.floor(Math.random() * 3);
+	this.ship = Math.floor(Math.random() * 5);
 	this.bullet = shipTypes[this.ship].bullet;
 	this.maxSpeed = shipTypes[this.ship].maxSpeed;
 	this.rotateSpeed = shipTypes[this.ship].rotateSpeed;
 	this.rateOfFire = shipTypes[this.ship].rateOfFire;
 	this.health = shipTypes[this.ship].health;
 	this.cooldownTime = 0;
+	this.maxEnergy = shipTypes[this.ship].energy;
+	this.currentEnergy = this.maxEnergy
 	this.image = Images[shipTypes[this.ship].img];
+	this.vx = 0;
+	this.vy = 0;
 }
 var Player1 = new Player(1);
 var Player2 = new Player(2);
 
+function playerUpdate() {
+	if (Player1.currentEnergy < Player1.maxEnergy) {
+		Player1.currentEnergy += shipTypes[Player1.ship].rechargeRate/50;
+		if (Player1.currentEnergy > Player1.maxEnergy) {
+			Player1.currentEnergy = Player1.maxEnergy;
+		}
+	}
+	if (Player2.currentEnergy < Player2.maxEnergy) {
+		Player2.currentEnergy += shipTypes[Player2.ship].rechargeRate/50;
+		if (Player2.currentEnergy > Player2.maxEnergy) {
+			Player2.currentEnergy = Player2.maxEnergy;
+		}
+	}
+}
 function playerMove(e){
 	//p1
-	if (keys[87]) { //w
-		if (Player1.speed < Player1.maxSpeed) {
-			Player1.speed += 0.2;
+	
+	if (keys[87] && keys[67] != true) { //w
+		Player1.vx += Math.cos(Player1.rotation)*0.2;
+		Player1.vy += Math.sin(Player1.rotation)*0.2;
+		/*if (Player1.vx > Player1.maxSpeed) {
+			Player1.vx = Player1.maxSpeed;
+		} else if (Player1.vx < -Player1.maxSpeed) {
+			Player1.vx = -Player1.maxSpeed;
+		}
+		if (Player1.vy > Player1.maxSpeed) {
+			Player1.vy = Player1.maxSpeed;
+		} else if (Player1.vy < -Player1.maxSpeed) {
+			Player1.vy = -Player1.maxSpeed;
+		}*/
+		if (Player1.vx*Player1.vx + Player1.vy*Player1.vy > Player1.maxSpeed*Player1.maxSpeed) {
+			
 		}
 	} else if (Player1.speed > 0) {
-		Player1.speed -= 0.2;
+		Player1.speed -= 0.00002;
 		if(Player1.speed < 0) {
 			Player1.speed = 0;
+		}
+	}
+	if (keys[67]) { //c
+		if (Player1.speed < Player1.maxSpeed*2 && Player1.currentEnergy > 0) {
+			Player1.speed += 0.4;
+			Player1.currentEnergy -= 1;
 		}
 	}
 	if (keys[83] ) { //s
@@ -420,9 +481,15 @@ function playerMove(e){
 	if (keys[68] ) { //d
 		Player1.rotation += Player1.rotateSpeed * 0.05;
 	}
-	
-	Player1.x += Math.cos(Player1.rotation) * Player1.speed;
-	Player1.y += Math.sin(Player1.rotation) * Player1.speed;
+	var dx = Math.cos(Player1.rotation) * Player1.speed;
+	var dy = Math.sin(Player1.rotation) * Player1.speed;
+	Player1.x += Player1.vx;
+	Player1.y += Player1.vy;
+	if (collides(Player1, Player2)) {
+		Player1.speed = -Player1.speed/2;
+		Player1.x -= dx;
+		Player1.y -= dy;
+	}
 	
 	//p2
 	if (keys[38]) { //up
@@ -433,6 +500,12 @@ function playerMove(e){
 		Player2.speed -= 0.2;
 		if(Player2.speed < 0) {
 			Player2.speed = 0;
+		}
+	}
+	if (keys[96]) { //numpad 0
+		if (Player2.speed < Player2.maxSpeed*2 && Player2.currentEnergy > 0) {
+			Player2.speed += 0.4;
+			Player2.currentEnergy -= 1;
 		}
 	}
 	if (keys[40] ) { //down
@@ -759,27 +832,56 @@ function createBullet(targetX, targetY, player) {
 		//deltaX = targetX - shooterX;
 		//deltaY = targetY - shooterY;
 		rotation = player.rotation;
-		xtarget = Math.cos(rotation);
-		ytarget = Math.sin(rotation);
-
-		theBullets.push({
-			active:true,
-			//x: shooterX + Math.sin(rotation)*10,
-			//y: shooterY + Math.cos(rotation)*10,
-			
-			x: player.x + (player.w / 2) - 0,
-			y: player.y + (player.h / 2) - 2,
-			shooter: player,
-			speed: bulletTypes[player.bullet].speed,
-			damage: bulletTypes[player.bullet].damage,
-			range: bulletTypes[player.bullet].range,
-			xtarget: xtarget,
-			ytarget: ytarget,
-			w: 3*bulletTypes[player.bullet].scale,
-			h: 3*bulletTypes[player.bullet].scale,
-			color: 'red',
-			angle: rotation
-		});
+		
+		if (player.currentEnergy - bulletTypes[player.bullet].energyCost >= 0) {
+			player.currentEnergy -= bulletTypes[player.bullet].energyCost;
+			if(player.bullet === 3) {
+				for (i = 0; i < 8; i++){
+					var tempRot = (i * 45 * Math.PI/180);
+					xtarget = Math.cos(tempRot);
+					ytarget = Math.sin(tempRot);
+					theBullets.push( {
+						active:true,
+						//x: shooterX + Math.sin(rotation)*10,
+						//y: shooterY + Math.cos(rotation)*10,
+						
+						x: player.x + (player.w / 2) - 0,
+						y: player.y + (player.h / 2) - 2,
+						shooter: player,
+						speed: bulletTypes[player.bullet].speed,
+						damage: bulletTypes[player.bullet].damage,
+						range: bulletTypes[player.bullet].range,
+						xtarget: xtarget,
+						ytarget: ytarget,
+						w: 3*bulletTypes[player.bullet].scale,
+						h: 3*bulletTypes[player.bullet].scale,
+						color: 'blue',
+						angle: rotation + tempRot
+					});
+				}
+			} else {
+				xtarget = Math.cos(rotation);
+				ytarget = Math.sin(rotation);
+				theBullets.push({
+					active:true,
+					//x: shooterX + Math.sin(rotation)*10,
+					//y: shooterY + Math.cos(rotation)*10,
+					
+					x: player.x + (player.w / 2) - 0,
+					y: player.y + (player.h / 2) - 2,
+					shooter: player,
+					speed: bulletTypes[player.bullet].speed,
+					damage: bulletTypes[player.bullet].damage,
+					range: bulletTypes[player.bullet].range,
+					xtarget: xtarget,
+					ytarget: ytarget,
+					w: 3*bulletTypes[player.bullet].scale,
+					h: 3*bulletTypes[player.bullet].scale,
+					color: 'red',
+					angle: rotation
+				});
+			}
+		}
 	}
 }
 
@@ -855,13 +957,17 @@ canvas.addEventListener("click", function() {
 
 canvas.addEventListener("keydown", function (e) {
 	keys[e.keyCode] = true;
-	if (event.keyCode === 86 && Player1.dead != true && Player1.cooldownTime <= 0) {
-        createBullet(mouseX, mouseY, Player1);
-		Player1.cooldownTime = Player1.rateOfFire;
+	if (event.keyCode === 86 && Player1.dead != true) {
+		if (Player1.cooldownTime <= 0 || Player1.bullet === 4) {
+			createBullet(mouseX, mouseY, Player1);
+			Player1.cooldownTime = Player1.rateOfFire;
+		}
     }
-	if (event.keyCode === 97 && Player2.dead != true && Player2.cooldownTime <= 0) {
-        createBullet(mouseX, mouseY, Player2);
-		Player2.cooldownTime = Player2.rateOfFire;
+	if (event.keyCode === 97 && Player2.dead != true) {
+        if (Player2.cooldownTime <= 0 || Player2.bullet === 4) {
+			createBullet(mouseX, mouseY, Player2);
+			Player2.cooldownTime = Player2.rateOfFire;
+		}
     }
 });
 
