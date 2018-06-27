@@ -130,7 +130,9 @@ function mainDraw() {
 		drawMap();
 		playerMove();	
 		updateCamera();
-		playerDraw();
+		updateZoom();
+		playerDraw(Player1);
+		playerDraw(Player2);
 		drawCoins();
 		drawHUD();
 		playerUpdate();
@@ -189,16 +191,6 @@ function updateCamera() {
 	deltaX = Player1.x - Player2.x;
 	deltaY = Player1.y - Player2.y;
 	
-	var temp = deltaX*deltaX + deltaY*deltaY;
-	if(temp < 280000){
-		zoomFactor = 280000 / temp;
-		if(zoomFactor > 2) {
-			zoomFactor = 2;
-		}
-	} else {
-		zoomFactor = 1;
-	}
-	
 	if(deltaX > camera.w) {
 		Player1.x -= mapSize.w;
 		bulletsTeleport(Player1, NEGATIVE_X);
@@ -214,32 +206,50 @@ function updateCamera() {
 		bulletsTeleport(Player1, POSITIVE_Y);
 	}
 	
-	//camera.x = Player1.x - (deltaX / 2) - (camera.w / 2);
-	//camera.y = Player1.y - (deltaY / 2) - (camera.h / 2);
+	camera.x = Player1.x - (deltaX / 2) - (camera.w / 2);
+	camera.y = Player1.y - (deltaY / 2) - (camera.h / 2);
+}
+
+function updateZoom() {
+	var deltaX;
+	var deltaY;
+	
+	deltaX = Player1.x - Player2.x;
+	deltaY = Player1.y - Player2.y;
+	
+	var temp = deltaX*deltaX + deltaY*deltaY;
+	if(temp < 150000){
+		zoomFactor = 150000 / temp;
+		if(zoomFactor > 2) {
+			zoomFactor = 2;
+		}
+	} else {
+		zoomFactor = 1;
+	}
 }
 
 function drawMap() {
 	if(zoomActive) {
-		c.drawImage(Images["background"], 0 /*- camera.x*/ - (mapSize.w * (zoomFactor - 1) / 2), 0 /*- camera.y */- (mapSize.h * (zoomFactor - 1) / 2), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+		c.drawImage(Images["background"], 0 - camera.x - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		
 		if (camera.x <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor, 0 - camera.y, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x >= mapSize.w - camera.w) {
-			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor, 0 - camera.y, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		}
 		if (camera.y <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y - mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y - mapSize.h * zoomFactor - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.y >= mapSize.h - camera.h) {
-			c.drawImage(Images["background"], 0 - camera.x, 0 - camera.y + mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y + mapSize.h * zoomFactor - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		}
 		if (camera.x <= 0 && camera.y <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor, 0 - camera.y - mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y - mapSize.h * zoomFactor - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x <= 0 && camera.y >= mapSize.h - camera.h) {
-			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor, 0 - camera.y + mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x - mapSize.w * zoomFactor - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y + mapSize.h * zoomFactor - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x >= mapSize.w - camera.w && camera.y <= 0) {
-			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor, 0 - camera.y - mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y - mapSize.h * zoomFactor - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		} else if (camera.x >= mapSize.w - camera.w && camera.y >= mapSize.h - camera.h) {
-			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor, 0 - camera.y + mapSize.h * zoomFactor, mapSize.w * zoomFactor, mapSize.h * zoomFactor);
+			c.drawImage(Images["background"], 0 - camera.x + mapSize.w * zoomFactor - ((camera.x + camera.w/2)*(zoomFactor-1)), 0 - camera.y + mapSize.h * zoomFactor - ((camera.y + camera.h/2)*(zoomFactor-1)), mapSize.w * zoomFactor, mapSize.h * zoomFactor);
 		}
 	} else {
 	
@@ -265,13 +275,22 @@ function drawMap() {
 		}
 	}
 } 
-
+/*
 function playerDraw() {
+	var tempDX = (camera.w/2 - (Player1.x - camera.x));
+	var tempDY = (camera.h/2 - (Player1.y - camera.y));
+	var tempX = (Player1.x - camera.x) - (zoomFactor - 1) * tempDX;
+	var tempY = (Player1.y - camera.y) - (zoomFactor - 1) * tempDY;
+			
 	c.beginPath();
 
 	c.strokeStyle="blue";
 	if (Player1.dead != true) {
-		c.rect(Player1.x - camera.x, Player1.y - camera.y, Player1.w, Player1.h);
+		if(zoomActive) {			
+			c.rect(tempX, tempY, Player1.w, Player1.h);
+		} else {
+			c.rect(Player1.x - camera.x, Player1.y - camera.y, Player1.w, Player1.h);
+		}
 	}
 	if (Player2.dead != true) {
 		c.rect(Player2.x - camera.x, Player2.y - camera.y, Player2.w, Player2.h);
@@ -280,18 +299,18 @@ function playerDraw() {
 	c.stroke();
 
 	c.save();
-	deltaX = mouseX - Player1.x;
-	deltaY = mouseY - Player1.y;
-	newAngle = Math.atan(deltaY / deltaX);
+	//deltaX = mouseX - Player1.x;
+	//deltaY = mouseY - Player1.y;
+	//newAngle = Math.atan(deltaY / deltaX);
 
 	
 	
 	if (Player1.dead != true) {
-		c.translate(Player1.x + (Player1.w / 2) - camera.x, Player1.y + (Player1.h / 2) - camera.y);
+		c.translate(tempX + (Player1.w / 2), tempY + (Player1.h / 2));
 		c.rotate(Player1.rotation);
-		c.translate(-Player1.x - (Player1.w / 2) + camera.x, -Player1.y - (Player1.h / 2) + camera.y);
+		c.translate(-tempX - (Player1.w / 2), -tempY - (Player1.h / 2));
 		if(zoomActive) {
-			c.drawImage(Player1.image, Player1.x - 4 - camera.x, Player1.y - 2 - camera.y,Player1.w * 1.3 * zoomFactor, Player1.h * 1.3 * zoomFactor);
+			c.drawImage(Player1.image, tempX - 4, tempY - 2,Player1.w * 1.3 * zoomFactor, Player1.h * 1.3 * zoomFactor);
 		} else {
 			c.drawImage(Player1.image, Player1.x - 4 - camera.x, Player1.y - 2 - camera.y,Player1.w * 1.3, Player1.h * 1.3);
 		}
@@ -312,6 +331,42 @@ function playerDraw() {
 	
 
 	c.restore();
+}*/	
+
+function playerDraw(player) {
+	var tempDX = (camera.w/2 - (player.x- camera.x));
+	var tempDY = (camera.h/2 - (player.y - camera.y));
+	var tempX = (player.x - camera.x) - (zoomFactor - 1) * tempDX;
+	var tempY = (player.y - camera.y) - (zoomFactor - 1) * tempDY;
+			
+	c.beginPath();
+
+	c.strokeStyle="blue";
+	if (player.dead != true) {
+		if(zoomActive) {			
+			c.rect(tempX, tempY, player.w*zoomFactor, player.h*zoomFactor);
+		} else {
+			c.rect(player.x - camera.x, player.y - camera.y, player.w, player.h);
+		}
+	}
+	c.lineWidth=1;
+	c.stroke();
+
+	c.save();
+	
+	if (player.dead != true) {
+		c.translate(tempX + (player.w / 2) * zoomFactor, tempY + (player.h / 2) * zoomFactor);
+		c.rotate(player.rotation);
+		c.translate(-tempX - (player.w / 2) * zoomFactor, -tempY - (player.h / 2) * zoomFactor);
+		if(zoomActive) {
+			c.drawImage(player.image, tempX - 4, tempY - 2,player.w * 1.3 * zoomFactor, player.h * 1.3 * zoomFactor);
+		} else {
+			c.drawImage(player.image, player.x - 4 - camera.x, player.y - 2 - camera.y, player.w * 1.3, player.h * 1.3);
+		}
+		
+		c.restore();
+		c.save();
+	}
 }	
 
 //createNewCoins();
@@ -959,14 +1014,18 @@ canvas.addEventListener("keydown", function (e) {
 	keys[e.keyCode] = true;
 	if (event.keyCode === 86 && Player1.dead != true) {
 		if (Player1.cooldownTime <= 0 || Player1.bullet === 4) {
-			createBullet(mouseX, mouseY, Player1);
-			Player1.cooldownTime = Player1.rateOfFire;
+			//createBullet(mouseX, mouseY, Player1);
+			//Player1.cooldownTime = Player1.rateOfFire;
+			Player1.vx = 0;
+			Player1.vy = 0;
 		}
     }
 	if (event.keyCode === 97 && Player2.dead != true) {
         if (Player2.cooldownTime <= 0 || Player2.bullet === 4) {
-			createBullet(mouseX, mouseY, Player2);
-			Player2.cooldownTime = Player2.rateOfFire;
+			//createBullet(mouseX, mouseY, Player2);
+			//Player2.cooldownTime = Player2.rateOfFire;
+			Player2.vx = 0;
+			Player2.vy = 0;
 		}
     }
 });
