@@ -441,10 +441,16 @@ function badGuysDraw(){
 
 function bulletsDraw() {
 	theBullets.forEach( function(i, j) {
+		var tempDX = (camera.w/2 - (i.x- camera.x));
+		var tempDY = (camera.h/2 - (i.y - camera.y));
+		var tempX = (i.x - camera.x) - (zoomFactor - 1) * tempDX;
+		var tempY = (i.y - camera.y) - (zoomFactor - 1) * tempDY;
+	
 		c.beginPath();
 		c.save();
 		c.fillStyle = i.color;
-		c.rect(i.x-camera.x, i.y-camera.y, i.w, i.h);
+		//c.rect(i.x-camera.x, i.y-camera.y, i.w, i.h);
+		c.rect(tempX, tempY, i.w*zoomFactor, i.h*zoomFactor);
 		c.fill();
 	});
 }
@@ -512,7 +518,15 @@ function playerMove(e){
 			Player1.vy = -Player1.maxSpeed;
 		}*/
 		if (Player1.vx*Player1.vx + Player1.vy*Player1.vy > Player1.maxSpeed*Player1.maxSpeed) {
-			
+			var newAngle = Math.atan(Player1.vy/Player1.vx);
+			if (Player1.vx < 0) {
+				newAngle += 180*Math.PI/180;
+				Player1.vy = Math.sin(newAngle)*Player1.maxSpeed;
+				Player1.vx = Math.cos(newAngle)*Player1.maxSpeed;
+			} else {
+				Player1.vy = Math.sin(newAngle)*Player1.maxSpeed;
+				Player1.vx = Math.cos(newAngle)*Player1.maxSpeed;
+			}
 		}
 	} else if (Player1.speed > 0) {
 		Player1.speed -= 0.00002;
@@ -536,23 +550,32 @@ function playerMove(e){
 	if (keys[68] ) { //d
 		Player1.rotation += Player1.rotateSpeed * 0.05;
 	}
-	var dx = Math.cos(Player1.rotation) * Player1.speed;
-	var dy = Math.sin(Player1.rotation) * Player1.speed;
 	Player1.x += Player1.vx;
 	Player1.y += Player1.vy;
 	if (collides(Player1, Player2)) {
-		Player1.speed = -Player1.speed/2;
-		Player1.x -= dx;
-		Player1.y -= dy;
+		Player1.x -= Player1.vx;
+		Player1.y -= Player1.vy;
+		Player1.vx = -Player1.vx/2;
+		Player1.vy = -Player1.vy/2;
 	}
 	
 	//p2
 	if (keys[38]) { //up
-		if (Player2.speed < Player2.maxSpeed) {
-			Player2.speed += 0.2;
+		Player2.vx += Math.cos(Player2.rotation)*0.2;
+		Player2.vy += Math.sin(Player2.rotation)*0.2;
+		if (Player2.vx*Player2.vx + Player2.vy*Player2.vy > Player2.maxSpeed*Player2.maxSpeed) {
+			var newAngle = Math.atan(Player2.vy/Player2.vx);
+			if (Player2.vx < 0) {
+				newAngle += 180*Math.PI/180;
+				Player2.vy = Math.sin(newAngle)*Player2.maxSpeed;
+				Player2.vx = Math.cos(newAngle)*Player2.maxSpeed;
+			} else {
+				Player2.vy = Math.sin(newAngle)*Player2.maxSpeed;
+				Player2.vx = Math.cos(newAngle)*Player2.maxSpeed;
+			}
 		}
 	} else if (Player2.speed > 0) {
-		Player2.speed -= 0.2;
+		Player2.speed -= 0.00002;
 		if(Player2.speed < 0) {
 			Player2.speed = 0;
 		}
@@ -573,9 +596,14 @@ function playerMove(e){
 	if (keys[39] ) { //right
 		Player2.rotation += Player2.rotateSpeed * 0.05;
 	}
-	
-	Player2.x += Math.cos(Player2.rotation) * Player2.speed;
-	Player2.y += Math.sin(Player2.rotation) * Player2.speed;
+	Player2.x += Player2.vx;
+	Player2.y += Player2.vy;
+	if (collides(Player1, Player2)) {
+		Player2.x -= Player2.vx;
+		Player2.y -= Player2.vy;
+		Player2.vx = -Player2.vx/2;
+		Player2.vy = -Player2.vy/2;
+	}
 	
 	if (Player1.x > mapSize.w && Player2.x > mapSize.w) {
 		Player1.x -= mapSize.w;
@@ -1014,18 +1042,18 @@ canvas.addEventListener("keydown", function (e) {
 	keys[e.keyCode] = true;
 	if (event.keyCode === 86 && Player1.dead != true) {
 		if (Player1.cooldownTime <= 0 || Player1.bullet === 4) {
-			//createBullet(mouseX, mouseY, Player1);
-			//Player1.cooldownTime = Player1.rateOfFire;
-			Player1.vx = 0;
-			Player1.vy = 0;
+			createBullet(mouseX, mouseY, Player1);
+			Player1.cooldownTime = Player1.rateOfFire;
+			//Player1.vx = 0;
+			//Player1.vy = 0;
 		}
     }
 	if (event.keyCode === 97 && Player2.dead != true) {
         if (Player2.cooldownTime <= 0 || Player2.bullet === 4) {
-			//createBullet(mouseX, mouseY, Player2);
-			//Player2.cooldownTime = Player2.rateOfFire;
-			Player2.vx = 0;
-			Player2.vy = 0;
+			createBullet(mouseX, mouseY, Player2);
+			Player2.cooldownTime = Player2.rateOfFire;
+			//Player2.vx = 0;
+			//Player2.vy = 0;
 		}
     }
 });
