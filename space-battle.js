@@ -48,6 +48,63 @@ var imageData = [{
 	name: "ship5",
 	url: "img/player5.png",
 },{
+	name: "ship6",
+	url: "img/player6.png",
+},{
+	name: "ship7",
+	url: "img/player7.png",
+},{
+	name: "ship8",
+	url: "img/player8png",
+},{
+	name: "ship9",
+	url: "img/player9.png",
+},{
+	name: "ship10",
+	url: "img/player10.png",
+},{
+	name: "ship11",
+	url: "img/player11.png",
+},{
+	name: "ship12",
+	url: "img/player12.png",
+},{
+	name: "ship13",
+	url: "img/player13.png",
+},{
+	name: "ship14",
+	url: "img/player14.png",
+},{
+	name: "ship15",
+	url: "img/player15.png",
+},{
+	name: "ship16",
+	url: "img/player16.png",
+},{
+	name: "ship17",
+	url: "img/player17.png",
+},{
+	name: "ship18",
+	url: "img/player18.png",
+},{
+	name: "ship19",
+	url: "img/player19.png",
+},{
+	name: "ship20",
+	url: "img/player20.png",
+},{
+	name: "ship21",
+	url: "img/player21.png",
+},{
+	name: "ship22",
+	url: "img/player22.png",
+},{
+	name: "ship23",
+	url: "img/player23.png",
+},{
+	name: "ship24",
+	url: "img/player24.png",
+},{
 	name: "background",
 	url: "img/backgroundstarssmalltest.jpg",
 }];
@@ -57,7 +114,26 @@ var shipTypes = [
 	{bullet: 1, maxSpeed: 5, rotateSpeed: 1, health: 300, rateOfFire: 1, img: "ship2", energy: 100, rechargeRate: 7},
 	{bullet: 3, maxSpeed: 2, rotateSpeed: 0.5, health: 400, rateOfFire: 2, img: "ship3", energy: 100, rechargeRate: 3},
 	{bullet: 2, maxSpeed: 2, rotateSpeed: 0.5, health: 500, rateOfFire: 2, img: "ship4", energy: 100, rechargeRate: 5},
-	{bullet: 4, maxSpeed: 2, rotateSpeed: 0.5, health: 500, rateOfFire: 2, img: "ship5", energy: 100, rechargeRate: 3}
+	{bullet: 4, maxSpeed: 2, rotateSpeed: 0.5, health: 500, rateOfFire: 2, img: "ship5", energy: 100, rechargeRate: 3},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship6", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship7", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship8", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship9", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship10", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship11", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship12", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship13", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship14", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship15", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship16", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship17", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship18", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship19", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship20", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship21", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship22", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship23", energy: 100, rechargeRate: 10},
+	{bullet: 0, maxSpeed: 10, rotateSpeed: 2, health: 200, rateOfFire: 0.5, img: "ship24", energy: 100, rechargeRate: 10}
 ];
 var bulletTypes = [
 	{speed: 10, damage: 10, scale: 1, range: 60, energyCost: 5}, 
@@ -471,7 +547,7 @@ function Player (i) {
 	this.rotation = 0;
 	this.speed = 0;
 	this.dead = false;
-	this.ship = Math.floor(Math.random() * 5);
+	this.ship = Math.floor(Math.random() * 24);
 	this.bullet = shipTypes[this.ship].bullet;
 	this.maxSpeed = shipTypes[this.ship].maxSpeed;
 	this.rotateSpeed = shipTypes[this.ship].rotateSpeed;
